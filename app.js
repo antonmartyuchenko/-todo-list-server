@@ -1,4 +1,4 @@
-const http = require('http');
+/*const http = require('http');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -10,5 +10,45 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});
+    console.log('Hello World');
+});*/
+
+/*let name = process.argv[2];
+let eat = process.argv[3];*/
+
+const fs = require('fs');
+const args = require('yargs').argv;
+const {method} = args;
+let messages = [];
+
+const addMessage = ({message}) => {
+
+    if (typeof method !== 'string' || message == "") throw new Error('Enter your message');
+
+    let lineBreak = '';
+
+    if (fs.existsSync("log.txt")) {
+        lineBreak = '\n';
+    }
+
+    fs.appendFileSync('log.txt', `${lineBreak}${message}`);
+}
+
+const findAll = () => {
+
+    if (fs.existsSync("log.txt")) { 
+        messages = fs.readFileSync("log.txt", "utf8").split('\n');
+        console.log(messages);
+    }
+
+}
+
+if (typeof method == 'string') {
+    if (method.toLowerCase() === 'post') {
+        addMessage(args);
+    } else if (method.toLowerCase() === 'get') {
+        findAll();
+    } else {
+        throw new Error('To send messages use the method "POST" or method "GET" to get all messages');
+    }
+}
