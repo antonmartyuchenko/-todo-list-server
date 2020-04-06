@@ -27,19 +27,23 @@ const addMessage = ({message}) => {
 
     let lineBreak = '';
 
-    if (fs.existsSync("log.txt")) {
+    if (fs.existsSync("log.txt") && fs.readFileSync("log.txt", "utf8") !== '') {
         lineBreak = '\n';
     }
 
     fs.appendFileSync('log.txt', `${lineBreak}${message}`);
+
+    return message;
+
 }
 
 const findAll = () => {
 
     if (fs.existsSync("log.txt")) { 
         messages = fs.readFileSync("log.txt", "utf8").split('\n');
-        console.log(messages);
     }
+
+    return messages;
 
 }
 
@@ -51,4 +55,6 @@ if (typeof method == 'string') {
     } else {
         throw new Error('To send messages use the method "POST" or method "GET" to get all messages');
     }
+} else {
+    throw new Error('Enter method: POST or GET');
 }
