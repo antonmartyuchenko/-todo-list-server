@@ -4,6 +4,7 @@
   "description": "\"\"",
   "main": "src/index.js",
   "dependencies": {
+    "husky": "4.2.3",
     "yargs": "15.3.1"
   },
   "devDependencies": {
@@ -28,5 +29,10 @@
   "bugs": {
     "url": "https://github.com/antonmartyuchenko/todo-list-server/issues"
   },
-  "homepage": "https://github.com/antonmartyuchenko/todo-list-server#readme"
+  "homepage": "https://github.com/antonmartyuchenko/todo-list-server#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  }
 }
