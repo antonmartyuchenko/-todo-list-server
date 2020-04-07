@@ -2,14 +2,22 @@
   "name": "package",
   "version": "1.0.0",
   "description": "\"\"",
-  "main": "app.js",
+  "main": "src/index.js",
   "dependencies": {
-    "fs": "^0.0.1-security",
-    "yargs": "^15.3.1"
+    "yargs": "15.3.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "6.8.0",
+    "eslint-config-airbnb": "18.1.0",
+    "eslint-config-prettier": "6.10.1",
+    "eslint-plugin-import": "2.20.2",
+    "eslint-plugin-jsx-a11y": "6.2.3",
+    "eslint-plugin-react": "7.19.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --ext .js src",
+    "lint-fix": "eslint src --fix"
   },
   "repository": {
     "type": "git",

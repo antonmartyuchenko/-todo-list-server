@@ -1,0 +1,182 @@
+{
+  "extends": "airbnb",
+  "rules": {
+    "camelcase": 0,
+    "max-len": [
+      2,
+      120,
+      2,
+      {
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreComments": false
+      }
+    ],
+    "arrow-body-style": [
+      1,
+      "as-needed"
+    ],
+    "arrow-parens": 0,
+    "comma-dangle": [
+      "error",
+      "only-multiline"
+    ],
+    "dot-notation": "warn",
+    "import/no-commonjs": 0,
+    "import/no-extraneous-dependencies": 0,
+    "react/no-find-dom-node": 0,
+    "import/no-nodejs-modules": 0,
+    "indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "no-process-exit": 0,
+    "no-tabs": 2,
+    "import/no-unresolved": 0,
+    "new-cap": 0,
+    "no-console": 0,
+    "no-invalid-this": 0,
+    "no-mixed-spaces-and-tabs": 0,
+    "no-trailing-spaces": 2,
+    "no-multi-spaces": 2,
+    "computed-property-spacing": [
+      "error",
+      "never"
+    ],
+    "no-whitespace-before-property": 2,
+    "space-in-parens": [
+      "error",
+      "never"
+    ],
+    "space-infix-ops": 2,
+    "space-unary-ops": [
+      "error",
+      {
+        "words": true,
+        "nonwords": false
+      }
+    ],
+    "key-spacing": [
+      "error",
+      {
+        "beforeColon": false,
+        "afterColon": true,
+        "mode": "strict"
+      }
+    ],
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "local",
+        "args": "none"
+      }
+    ],
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false
+      }
+    ],
+    "no-var": "error",
+    "prefer-const": [
+      "error",
+      {
+        "destructuring": "all"
+      }
+    ],
+    "quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true,
+        "allowTemplateLiterals": true
+      }
+    ],
+    "react/display-name": [
+      0
+    ],
+    "react/no-deprecated": 0,
+    "require-jsdoc": 0,
+    "semi": [
+      "error",
+      "always"
+    ],
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "always"
+      }
+    ],
+    "switch-colon-spacing": 0,
+    "no-sync": 0,
+    "class-methods-use-this": 0,
+    "jsx-quotes": [
+      1,
+      "prefer-double"
+    ],
+    "react/jsx-indent-props": [
+      2,
+      2
+    ],
+    "react/jsx-boolean-value": [
+      2,
+      "always"
+    ],
+    "react/jsx-closing-bracket-location": [
+      2,
+      "line-aligned"
+    ],
+    "react/jsx-handler-names": [
+      2,
+      {
+        "eventHandlerPrefix": "handle",
+        "eventHandlerPropPrefix": "on"
+      }
+    ],
+    "react/jsx-closing-tag-location": 2,
+    "react/prop-types": [
+      2,
+      {
+        "ignore": [
+          "children",
+          "location",
+          "routeParams",
+          "dispatch",
+          "route"
+        ],
+        "customValidators": []
+      }
+    ],
+    "react/jsx-wrap-multilines": [
+      2,
+      {
+        "declaration": true,
+        "assignment": true,
+        "return": true
+      }
+    ]
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+    "jquery": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "ecmaFeatures": {
+      "legacyDecorators": true,
+      "jsx": true
+    }
+  },
+  "globals": {
+    "window": true,
+    "document": true,
+    "__webpack_public_path__": true
+  }
+}
