@@ -1,5 +1,6 @@
 const fs = require('fs');
 const http = require('http');
+
 const hostname = '127.0.0.1';
 const port = 3000;
 
@@ -44,7 +45,7 @@ const findOne = id => {
     }
   }
 
-  return '';
+  throw new Error('File does not exist');
 };
 
 const deleteMessage = id => {
@@ -63,6 +64,8 @@ const deleteMessage = id => {
       return 'done';
     }
   }
+
+  throw new Error('File does not exist');
 };
 
 const server = http.createServer((req, res) => {
@@ -77,16 +80,15 @@ const server = http.createServer((req, res) => {
 
     if (!id || id < 0) {
       res.statusCode = 400;
-      res.end(JSON.stringify({errors: ['Enter id message']}));
+      res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
 
     if (id || id === 0) {
       try {
         res.end(findOne(id));
-      } catch(e) {
-        console.log(e);
+      } catch (e) {
         res.statusCode = 400;
-        res.end(JSON.stringify({errors: [e.message]}));
+        res.end(JSON.stringify({ errors: [e.message] }));
       }
     } else {
       res.end(findAll());
@@ -97,13 +99,17 @@ const server = http.createServer((req, res) => {
 
     if (id === true || id < 0) {
       res.statusCode = 400;
-      res.end(JSON.stringify({errors: ['Enter id message']}));
+      res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
 
     if (id || id === 0) {
-      res.end(deleteMessage(id));
+      try {
+        res.end(deleteMessage(id));
+      } catch (e) {
+        res.statusCode = 404;
+        res.end(JSON.stringify({ errors: [e.message] }));
+      }
     }
-
   } else if (method.toLowerCase() === 'post') {
     let body = '';
 
@@ -111,19 +117,19 @@ const server = http.createServer((req, res) => {
       body += chunk.toString();
     });
     req.on('end', () => {
-      message = body.split(':')[1].replace(/[:"}%]/g, '').trim();
+      const message = body.split(':')[1].replace(/[:"}%]/g, '').trim();
       try {
         res.end(addMessage(message));
       } catch (e) {
         res.statusCode = 400;
-        res.end(JSON.stringify({errors: [e.message]}));
+        res.end(JSON.stringify({ errors: [e.message] }));
       }
     });
-  } else { 
-      res.statusCode = 404 ;
-      res.end(JSON.stringify({errors: ['Method not allowed']}));
-  };
-})
+  } else {
+    res.statusCode = 404;
+    res.end(JSON.stringify({ errors: ['Method not allowed'] }));
+  }
+});
 
 server.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
