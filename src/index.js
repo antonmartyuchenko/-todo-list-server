@@ -3,10 +3,9 @@ const http = require('http');
 
 const hostname = '127.0.0.1';
 const port = 3000;
+let body = '';
 
 const addMessage = (message) => {
-  if (typeof message !== 'string' || message === '') { throw new Error('Enter your message'); }
-
   let lineBreak = '';
 
   if (fs.existsSync('log.txt') && fs.readFileSync('log.txt', 'utf8') !== '') {
@@ -23,7 +22,7 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n');
+      return JSON.stringify(fileData.split('\n'));
     }
   }
 
@@ -45,8 +44,9 @@ const findOne = id => {
     }
   }
 
-  throw new Error('File does not exist');
+  throw new Error('Message has not been found');
 };
+
 
 const deleteMessage = id => {
   if (fs.existsSync('log.txt')) {
@@ -60,12 +60,16 @@ const deleteMessage = id => {
       messages.splice(id, 1);
 
       fs.writeFileSync('log.txt', messages.join('\n'));
-
-      return 'done';
     }
-  }
+  } else { throw new Error('Message has not been found'); }
+};
 
-  throw new Error('File does not exist');
+const getRequestQueryParameters = url => url.split('?')[1];
+
+const getRequestBody = req => {
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
 };
 
 const server = http.createServer((req, res) => {
@@ -73,61 +77,63 @@ const server = http.createServer((req, res) => {
 
 
   if (method.toLowerCase() === 'get') {
-    const parametrs = req.url.split('?')[1];
-    const id = parametrs.split('=')[1];
+    if (req.url.replace(/[/%]/g, '') === '') {
+      return res.end(findAll());
+    }
 
-    console.log(id, typeof id);
+    const id = getRequestQueryParameters(req.url).split('=')[1];
 
-    if (!id || id < 0) {
+    if (id === '' || id < 0) {
       res.statusCode = 400;
-      res.end(JSON.stringify({ errors: ['Enter id message'] }));
+      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
 
     if (id || id === 0) {
       try {
-        res.end(findOne(id));
-      } catch (e) {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ errors: [e.message] }));
-      }
-    } else {
-      res.end(findAll());
-    }
-  } else if (method.toLowerCase() === 'delete') {
-    const parametrs = req.url.split('?')[1];
-    const id = parametrs.split('=')[1];
-
-    if (id === true || id < 0) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ errors: ['Enter id message'] }));
-    }
-
-    if (id || id === 0) {
-      try {
-        res.end(deleteMessage(id));
+        return res.end(findOne(id));
       } catch (e) {
         res.statusCode = 404;
-        res.end(JSON.stringify({ errors: [e.message] }));
+        return res.end(JSON.stringify({ errors: [e.message] }));
+      }
+    } else {
+      return res.end(findAll());
+    }
+  } else if (method.toLowerCase() === 'delete') {
+    const id = getRequestQueryParameters(req.url).split('=')[1];
+
+    if (id === '' || id < 0) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+    }
+
+    if (id || id === 0) {
+      try {
+        return res.end(deleteMessage(id));
+      } catch (e) {
+        res.statusCode = 404;
+        return res.end(JSON.stringify({ errors: [e.message] }));
       }
     }
-  } else if (method.toLowerCase() === 'post') {
-    let body = '';
 
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
+    return '';
+  } else if (method.toLowerCase() === 'post') {
+    getRequestBody(req);
+
     req.on('end', () => {
       const message = body.split(':')[1].replace(/[:"}%]/g, '').trim();
-      try {
-        res.end(addMessage(message));
-      } catch (e) {
+
+      if (!message) {
         res.statusCode = 400;
-        res.end(JSON.stringify({ errors: [e.message] }));
+        return res.end(JSON.stringify({ errors: ['Enter your message'] }));
       }
+
+      return res.end(addMessage(message));
     });
+
+    return '';
   } else {
     res.statusCode = 404;
-    res.end(JSON.stringify({ errors: ['Method not allowed'] }));
+    return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
   }
 });
 
