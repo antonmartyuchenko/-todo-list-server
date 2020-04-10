@@ -3,7 +3,6 @@ const http = require('http');
 
 const hostname = '127.0.0.1';
 const port = 3000;
-let body = '';
 
 const addMessage = (message) => {
   let lineBreak = '';
@@ -39,12 +38,10 @@ const findOne = id => {
       if (message) {
         return message;
       }
-
-      throw new Error('Message has not been found');
     }
   }
 
-  throw new Error('Message has not been found');
+  return null;
 };
 
 
@@ -61,16 +58,29 @@ const deleteMessage = id => {
 
       fs.writeFileSync('log.txt', messages.join('\n'));
     }
-  } else { throw new Error('Message has not been found'); }
+  }
+
+  throw new Error('Message has not been found');
 };
 
 const getRequestQueryParameters = url => url.split('?')[1];
 
-const getRequestBody = req => {
-  req.on('data', chunk => {
-    body += chunk.toString();
+const parseRequestBody = req => {
+  let body = '';
+
+  return new Promise((resolve, rejected) => {
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+
+    if (body !== '') {
+      resolve(body);
+    }
+  
+    rejected(new Error('Request body not read'));
   });
 };
+
 
 const server = http.createServer((req, res) => {
   const { method } = req;
@@ -117,9 +127,7 @@ const server = http.createServer((req, res) => {
 
     return '';
   } else if (method.toLowerCase() === 'post') {
-    getRequestBody(req);
-
-    req.on('end', () => {
+    parseRequestBody(req).then(body => {
       const message = body.split(':')[1].replace(/[:"}%]/g, '').trim();
 
       if (!message) {
@@ -128,6 +136,9 @@ const server = http.createServer((req, res) => {
       }
 
       return res.end(addMessage(message));
+    }, e => {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: [e.message] }));
     });
 
     return '';
