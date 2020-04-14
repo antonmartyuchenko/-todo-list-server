@@ -65,23 +65,21 @@ const deleteMessage = id => {
 
 const getRequestQueryParameters = url => url.split('?')[1];
 
-const parseRequestBody = req => {
-  return new Promise((resolve, rejected) => {
-    let bodyString = '';
-  
-    req.on('data', chunk => {
-      bodyString += chunk.toString();
-    });
+const parseRequestBody = req => new Promise((resolve, rejected) => {
+  let bodyString = '';
 
-    req.on('end', () => {
-      if (bodyString) {   
-        resolve(JSON.parse(bodyString));
-      } else {
-        resolve(null);
-      } 
-    }) 
+  req.on('data', chunk => {
+    bodyString += chunk.toString();
   });
-};
+
+  req.on('end', () => {
+    if (bodyString) {
+      resolve(JSON.parse(bodyString));
+    } else {
+      resolve(null);
+    }
+  });
+});
 
 
 const server = http.createServer((req, res) => {
@@ -129,8 +127,8 @@ const server = http.createServer((req, res) => {
     return '';
   } else if (method.toLowerCase() === 'post') {
     parseRequestBody(req).then(body => {
-      const {message} = body;
-     
+      const { message } = body;
+
       if (!message) {
         res.statusCode = 400;
         return res.end(JSON.stringify({ errors: ['Enter your message'] }));
