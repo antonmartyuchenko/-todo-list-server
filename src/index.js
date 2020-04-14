@@ -118,9 +118,9 @@ const server = http.createServer((req, res) => {
     if (id || id === 0) {
       try {
         return res.end(deleteMessage(id));
-      } catch (e) {
+      } catch (error) {
         res.statusCode = 404;
-        return res.end(JSON.stringify({ errors: [e.message] }));
+        return res.end(JSON.stringify({ errors: [error.message] }));
       }
     }
 
