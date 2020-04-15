@@ -57,13 +57,27 @@ const deleteMessage = id => {
       messages.splice(id, 1);
 
       fs.writeFileSync('log.txt', messages.join('\n'));
+
+      return [];
     }
   }
 
   throw new Error('Message has not been found');
 };
 
-const getRequestQueryParameters = url => url.split('?')[1];
+const getRequestQueryParameters = url => {
+  const queryParameters = {};
+  let parametr;
+  let value;
+
+  url.split('?')[1].split('&').forEach(element => {
+    [parametr, value] = element.split('=');
+    queryParameters[parametr] = value;
+  });
+
+  console.log(queryParameters);
+  return queryParameters;
+};
 
 const parseRequestBody = req => new Promise((resolve, rejected) => {
   let bodyString = '';
@@ -90,7 +104,7 @@ const server = http.createServer((req, res) => {
       return res.end(findAll());
     }
 
-    const id = getRequestQueryParameters(req.url).split('=')[1];
+    const { id } = getRequestQueryParameters(req.url);
 
     if (id === '' || id < 0) {
       res.statusCode = 400;
@@ -104,27 +118,23 @@ const server = http.createServer((req, res) => {
         res.statusCode = 404;
         return res.end(JSON.stringify({ errors: [e.message] }));
       }
-    } else {
-      return res.end(findAll());
     }
-  } else if (method.toLowerCase() === 'delete') {
-    const id = getRequestQueryParameters(req.url).split('=')[1];
 
-    if (id === '' || id < 0) {
+    return res.end(findAll());
+  } if (method.toLowerCase() === 'delete') {
+    const { id } = getRequestQueryParameters(req.url);
+
+    if (id === '' || id < 0 || id === undefined) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
 
-    if (id || id === 0) {
-      try {
-        return res.end(deleteMessage(id));
-      } catch (error) {
-        res.statusCode = 404;
-        return res.end(JSON.stringify({ errors: [error.message] }));
-      }
+    try {
+      return res.end(deleteMessage(id));
+    } catch (error) {
+      res.statusCode = 404;
+      return res.end(JSON.stringify({ errors: [error.message] }));
     }
-
-    return '';
   } else if (method.toLowerCase() === 'post') {
     parseRequestBody(req).then(body => {
       const { message } = body;
@@ -135,7 +145,7 @@ const server = http.createServer((req, res) => {
       }
 
       return res.end(addMessage(message));
-    }, e => {
+    }).catch(e => {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: [e.message] }));
     });
