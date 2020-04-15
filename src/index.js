@@ -75,7 +75,6 @@ const getRequestQueryParameters = url => {
     queryParameters[parametr] = value;
   });
 
-  console.log(queryParameters);
   return queryParameters;
 };
 
