@@ -1,11 +1,10 @@
 const fs = require('fs');
-const args = require('yargs').argv;
+const http = require('http');
 
-const { method } = args;
+const hostname = '127.0.0.1';
+const port = 3000;
 
 const addMessage = (message) => {
-  if (typeof message !== 'string' || message === '') { throw new Error('Enter your message'); }
-
   let lineBreak = '';
 
   if (fs.existsSync('log.txt') && fs.readFileSync('log.txt', 'utf8') !== '') {
@@ -22,7 +21,7 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n');
+      return JSON.stringify(fileData.split('\n'));
     }
   }
 
@@ -36,16 +35,15 @@ const findOne = id => {
     if (fileData) {
       const message = fileData.split('\n')[id];
 
-      if (!message) {
-        throw new Error('Message does not exist');
+      if (message) {
+        return message;
       }
-
-      return message;
     }
   }
 
-  return '';
+  return null;
 };
+
 
 const deleteMessage = id => {
   if (fs.existsSync('log.txt')) {
@@ -54,45 +52,108 @@ const deleteMessage = id => {
     if (fileData) {
       const messages = fileData.split('\n');
 
-      if (id >= messages.length) {
-        throw new Error('Message does not exist');
-      }
+      if (id >= messages.length) { throw new Error('Message has not been found'); }
 
       messages.splice(id, 1);
 
       fs.writeFileSync('log.txt', messages.join('\n'));
+
+      return [];
     }
   }
+
+  throw new Error('Message has not been found');
 };
 
-if (typeof method === 'string') {
-  if (method.toLowerCase() === 'post') {
-    addMessage(args.message);
-  } else if (method.toLowerCase() === 'get') {
-    const { id } = args;
+const getRequestQueryParameters = url => {
+  const queryParameters = {};
 
-    if (id === true || id < 0) {
-      throw new Error('Enter id message');
-    }
-
-    if (id || id === 0) {
-      console.log(findOne(id));
-    } else {
-      console.log(findAll());
-    }
-  } else if (method.toLowerCase() === 'delete') {
-    const { id } = args;
-
-    if (id === true || id < 0) {
-      throw new Error('Enter id message');
-    }
-
-    if (id || id === 0) {
-      deleteMessage(id);
-    }
-  } else {
-    throw new Error('To send messages use the method "POST" or method "GET" to get messages or method "DELETE" to delete messages');
+  for (const index of url.split('?')[1].split('&')) {
+    const [parameter, value] = index.split('=');
+    queryParameters[parameter] = value;
   }
-} else {
-  throw new Error('Enter method: POST or GET');
-}
+
+  return queryParameters;
+};
+
+const parseRequestBody = req => new Promise((resolve, rejected) => {
+  let bodyString = '';
+
+  req.on('data', chunk => {
+    bodyString += chunk.toString();
+  });
+
+  req.on('end', () => {
+    if (bodyString) {
+      resolve(JSON.parse(bodyString));
+    } else {
+      resolve(null);
+    }
+  });
+});
+
+
+const server = http.createServer((req, res) => {
+  const { method } = req;
+
+  if (method.toLowerCase() === 'get') {
+    if (req.url.replace(/[/%]/g, '') === '') {
+      return res.end(findAll());
+    }
+
+    const { id } = getRequestQueryParameters(req.url);
+
+    if (id === '' || id < 0) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+    }
+
+    if (id || id === 0) {
+      try {
+        return res.end(findOne(id));
+      } catch (e) {
+        res.statusCode = 404;
+        return res.end(JSON.stringify({ errors: [e.message] }));
+      }
+    }
+
+    return res.end(findAll());
+  } if (method.toLowerCase() === 'delete') {
+    const { id } = getRequestQueryParameters(req.url);
+
+    if (id === '' || id < 0 || id === undefined) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+    }
+
+    try {
+      return res.end(deleteMessage(id));
+    } catch (error) {
+      res.statusCode = 404;
+      return res.end(JSON.stringify({ errors: [error.message] }));
+    }
+  } else if (method.toLowerCase() === 'post') {
+    parseRequestBody(req).then(body => {
+      const { message } = body;
+
+      if (!message) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ errors: ['Enter your message'] }));
+      }
+
+      return res.end(addMessage(message));
+    }).catch(e => {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: [e.message] }));
+    });
+
+    return '';
+  } else {
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
+  }
+});
+
+server.listen(port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`);
+});
