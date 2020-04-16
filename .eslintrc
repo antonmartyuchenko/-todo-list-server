@@ -38,7 +38,6 @@
     "import/no-unresolved": 0,
     "new-cap": 0,
     "no-console": 0,
-    "no-iterator": 0,
     "no-restricted-syntax":0,
     "no-invalid-this": 0,
     "no-mixed-spaces-and-tabs": 0,
