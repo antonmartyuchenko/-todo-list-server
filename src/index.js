@@ -67,14 +67,13 @@ const deleteMessage = id => {
 
 const getRequestQueryParameters = url => {
   const queryParameters = {};
-  let parametr;
-  let value;
 
-  url.split('?')[1].split('&').forEach(element => {
-    [parametr, value] = element.split('=');
-    queryParameters[parametr] = value;
-  });
+  for (const index of url.split('?')[1].split('&')) {
+    const [parameter, value] = index.split('=');
+    queryParameters[parameter] = value;
+  }
 
+  console.log(queryParameters);
   return queryParameters;
 };
 
