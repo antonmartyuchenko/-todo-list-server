@@ -101,7 +101,7 @@ const getRequestQueryParameters = url => {
 const getUrlParameters = (pattern, url) => {
   const urlParameters = {};
   const arrayParameters = pattern.match(/:([a-zA-Z0-9_]+)/g);
-  const regExpUrl = pattern.replace(new RegExp(`${arrayParameters.join('|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
+  const regExpUrl = pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
   const arrayValues = url.match(new RegExp(regExpUrl.replace(/\//g, '\\/')));
 
   if (arrayValues) {
@@ -138,7 +138,7 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
   }
 
-  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = getUrlParameters('/api/tasks/:id/messages/:id2/test/:id3', req.url);
 
   if (method === 'GET') {
     if (!id) {
