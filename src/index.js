@@ -138,7 +138,7 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
   }
 
-  const { id } = getUrlParameters('/api/tasks/:id/messages/:id2/test/:id3', req.url);
+  const { id } = getUrlParameters('/api/tasks/:id', req.url);
 
   if (method === 'GET') {
     if (!id) {
