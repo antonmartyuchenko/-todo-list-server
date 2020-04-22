@@ -25,7 +25,7 @@ const findAll = () => {
     }
   }
 
-  return [];
+  return JSON.stringify([]);
 };
 
 const findOne = id => {
@@ -58,13 +58,34 @@ const deleteMessage = id => {
 
       fs.writeFileSync('log.txt', messages.join('\n'));
 
-      return [];
+      return JSON.stringify([]);
     }
   }
 
   throw new Error('Message has not been found');
 };
 
+const updateMessage = (id, message) => {
+  if (fs.existsSync('log.txt')) {
+    const fileData = fs.readFileSync('log.txt', 'utf8');
+
+    if (fileData) {
+      const messages = fileData.split('\n');
+
+      if (id >= messages.length) { throw new Error('Message has not been found'); }
+
+      messages[id] = message;
+
+      fs.writeFileSync('log.txt', messages.join('\n'));
+
+      return JSON.stringify(message);
+    }
+  }
+
+  throw new Error('Message has not been found');
+};
+
+/*
 const getRequestQueryParameters = url => {
   const queryParameters = {};
 
@@ -74,6 +95,22 @@ const getRequestQueryParameters = url => {
   }
 
   return queryParameters;
+};
+*/
+
+const getUrlParameters = (pattern, url) => {
+  const urlParameters = {};
+  const arrayParameters = pattern.match(/:([a-zA-Z0-9_]+)/g);
+  const regExpUrl = pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
+  const arrayValues = url.match(new RegExp(regExpUrl.replace(/\//g, '\\/')));
+
+  if (arrayValues) {
+    for (let i = 0; i < arrayParameters.length; i++) {
+      urlParameters[arrayParameters[i].slice(1)] = arrayValues[i + 1];
+    }
+  }
+
+  return urlParameters;
 };
 
 const parseRequestBody = req => new Promise((resolve, rejected) => {
@@ -96,32 +133,31 @@ const parseRequestBody = req => new Promise((resolve, rejected) => {
 const server = http.createServer((req, res) => {
   const { method } = req;
 
-  if (method.toLowerCase() === 'get') {
-    if (req.url.replace(/[/%]/g, '') === '') {
+  if (!(/^\/api\/tasks\b/).test(req.url)) {
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
+  }
+
+  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+
+  if (method === 'GET') {
+    if (!id) {
       return res.end(findAll());
     }
 
-    const { id } = getRequestQueryParameters(req.url);
-
-    if (id === '' || id < 0) {
+    if (id < 0) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
 
-    if (id || id === 0) {
-      try {
-        return res.end(findOne(id));
-      } catch (e) {
-        res.statusCode = 404;
-        return res.end(JSON.stringify({ errors: [e.message] }));
-      }
+    try {
+      return res.end(findOne(id));
+    } catch (e) {
+      res.statusCode = 404;
+      return res.end(JSON.stringify({ errors: [e.message] }));
     }
-
-    return res.end(findAll());
-  } if (method.toLowerCase() === 'delete') {
-    const { id } = getRequestQueryParameters(req.url);
-
-    if (id === '' || id < 0 || id === undefined) {
+  } if (method === 'DELETE') {
+    if (!id || id < 0) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: ['Enter id message'] }));
     }
@@ -132,7 +168,7 @@ const server = http.createServer((req, res) => {
       res.statusCode = 404;
       return res.end(JSON.stringify({ errors: [error.message] }));
     }
-  } else if (method.toLowerCase() === 'post') {
+  } else if (method === 'POST') {
     parseRequestBody(req).then(body => {
       const { message } = body;
 
@@ -148,10 +184,30 @@ const server = http.createServer((req, res) => {
     });
 
     return '';
-  } else {
-    res.statusCode = 404;
-    return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
+  } else if (method === 'PUT') {
+    parseRequestBody(req).then(body => {
+      const { message } = body;
+
+      if (!message) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ errors: ['Enter your message'] }));
+      }
+
+      if (!id || id < 0) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+      }
+
+      return res.end(updateMessage(id, message));
+    }).catch(e => {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: [e.message] }));
+    });
+
+    return '';
   }
+
+  return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
 });
 
 server.listen(port, hostname, () => {
