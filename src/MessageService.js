@@ -17,7 +17,7 @@ module.exports.findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return JSON.stringify(fileData.split('\n'));
+      return fileData.split('\n');
     }
   }
 
@@ -74,7 +74,7 @@ module.exports.updateMessage = (id, message) => {
 
       fs.writeFileSync('log.txt', messages.join('\n'));
 
-      return JSON.stringify(message);
+      return message;
     }
   }
 

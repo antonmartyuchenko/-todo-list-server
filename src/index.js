@@ -61,7 +61,7 @@ const server = http.createServer((req, res) => {
 
   if (method === 'GET') {
     if (!id) {
-      return res.end(messageService.findAll());
+      return res.end(JSON.stringify(messageService.findAll()));
     }
 
     if (id < 0) {
