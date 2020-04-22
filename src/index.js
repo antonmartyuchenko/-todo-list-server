@@ -1,89 +1,8 @@
-const fs = require('fs');
 const http = require('http');
+const messageService = require('./MessageService');
 
 const hostname = '127.0.0.1';
 const port = 3000;
-
-const addMessage = (message) => {
-  let lineBreak = '';
-
-  if (fs.existsSync('log.txt') && fs.readFileSync('log.txt', 'utf8') !== '') {
-    lineBreak = '\n';
-  }
-
-  fs.appendFileSync('log.txt', `${lineBreak}${message}`);
-
-  return message;
-};
-
-const findAll = () => {
-  if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
-
-    if (fileData) {
-      return JSON.stringify(fileData.split('\n'));
-    }
-  }
-
-  return JSON.stringify([]);
-};
-
-const findOne = id => {
-  if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
-
-    if (fileData) {
-      const message = fileData.split('\n')[id];
-
-      if (message) {
-        return message;
-      }
-    }
-  }
-
-  return null;
-};
-
-
-const deleteMessage = id => {
-  if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
-
-    if (fileData) {
-      const messages = fileData.split('\n');
-
-      if (id >= messages.length) { throw new Error('Message has not been found'); }
-
-      messages.splice(id, 1);
-
-      fs.writeFileSync('log.txt', messages.join('\n'));
-
-      return JSON.stringify([]);
-    }
-  }
-
-  throw new Error('Message has not been found');
-};
-
-const updateMessage = (id, message) => {
-  if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
-
-    if (fileData) {
-      const messages = fileData.split('\n');
-
-      if (id >= messages.length) { throw new Error('Message has not been found'); }
-
-      messages[id] = message;
-
-      fs.writeFileSync('log.txt', messages.join('\n'));
-
-      return JSON.stringify(message);
-    }
-  }
-
-  throw new Error('Message has not been found');
-};
 
 /*
 const getRequestQueryParameters = url => {
@@ -142,16 +61,16 @@ const server = http.createServer((req, res) => {
 
   if (method === 'GET') {
     if (!id) {
-      return res.end(findAll());
+      return res.end(messageService.findAll());
     }
 
     if (id < 0) {
       res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
     }
 
     try {
-      return res.end(findOne(id));
+      return res.end(messageService.findOne(id));
     } catch (e) {
       res.statusCode = 404;
       return res.end(JSON.stringify({ errors: [e.message] }));
@@ -159,11 +78,11 @@ const server = http.createServer((req, res) => {
   } if (method === 'DELETE') {
     if (!id || id < 0) {
       res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
     }
 
     try {
-      return res.end(deleteMessage(id));
+      return res.end(messageService.deleteMessage(id));
     } catch (error) {
       res.statusCode = 404;
       return res.end(JSON.stringify({ errors: [error.message] }));
@@ -174,10 +93,10 @@ const server = http.createServer((req, res) => {
 
       if (!message) {
         res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter your message'] }));
+        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
       }
 
-      return res.end(addMessage(message));
+      return res.end(messageService.addMessage(message));
     }).catch(e => {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: [e.message] }));
@@ -190,15 +109,15 @@ const server = http.createServer((req, res) => {
 
       if (!message) {
         res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter your message'] }));
+        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
       }
 
       if (!id || id < 0) {
         res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter id message'] }));
+        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
       }
 
-      return res.end(updateMessage(id, message));
+      return res.end(messageService.updateMessage(id, message));
     }).catch(e => {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: [e.message] }));
