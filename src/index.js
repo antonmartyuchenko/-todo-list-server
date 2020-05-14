@@ -6,41 +6,10 @@ const hostname = '127.0.0.1';
 const port = 3000;
 const router = express.Router;
 
-const getUrlParameters = (pattern, url) => {
-  const urlParameters = {};
-  const arrayParameters = pattern.match(/:([a-zA-Z0-9_]+)/g);
-  const regExpUrl = pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
-  const arrayValues = url.match(new RegExp(regExpUrl.replace(/\//g, '\\/')));
-
-  if (arrayValues) {
-    for (let i = 0; i < arrayParameters.length; i++) {
-      urlParameters[arrayParameters[i].slice(1)] = arrayValues[i + 1];
-    }
-  }
-
-  return urlParameters;
-};
-
-const parseRequestBody = req => new Promise((resolve, rejected) => {
-  let bodyString = '';
-
-  req.on('data', chunk => {
-    bodyString += chunk.toString();
-  });
-
-  req.on('end', () => {
-    if (bodyString) {
-      resolve(JSON.parse(bodyString));
-    } else {
-      resolve(null);
-    }
-  });
-});
-
 router.get('/api/tasks', (req, res) => res.end(JSON.stringify(messageService.findAll())));
 
 router.get('/api/tasks/:id', (req, res) => {
-  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
 
   if (id < 0) {
     res.statusCode = 400;
@@ -56,7 +25,7 @@ router.get('/api/tasks/:id', (req, res) => {
 });
 
 router.post('/api/tasks', (req, res) => {
-  parseRequestBody(req).then(body => {
+  express.parseRequestBody(req).then(body => {
     const { message } = body;
 
     if (!message) {
@@ -74,9 +43,9 @@ router.post('/api/tasks', (req, res) => {
 });
 
 router.put('/api/tasks/:id', (req, res) => {
-  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
 
-  parseRequestBody(req).then(body => {
+  express.parseRequestBody(req).then(body => {
     const { message } = body;
 
     if (!message) {
@@ -99,7 +68,7 @@ router.put('/api/tasks/:id', (req, res) => {
 });
 
 router.delete('/api/tasks/:id', (req, res) => {
-  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
 
   if (!id || id < 0) {
     res.statusCode = 400;
