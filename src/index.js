@@ -1,21 +1,10 @@
 const http = require('http');
 const messageService = require('./MessageService');
+const express = require('./express');
 
 const hostname = '127.0.0.1';
 const port = 3000;
-
-/*
-const getRequestQueryParameters = url => {
-  const queryParameters = {};
-
-  for (const index of url.split('?')[1].split('&')) {
-    const [parameter, value] = index.split('=');
-    queryParameters[parameter] = value;
-  }
-
-  return queryParameters;
-};
-*/
+const router = express.Router;
 
 const getUrlParameters = (pattern, url) => {
   const urlParameters = {};
@@ -48,82 +37,100 @@ const parseRequestBody = req => new Promise((resolve, rejected) => {
   });
 });
 
+router.get('/api/tasks', (req, res) => res.end(JSON.stringify(messageService.findAll())));
 
-const server = http.createServer((req, res) => {
-  const { method } = req;
-
-  if (!(/^\/api\/tasks\b/).test(req.url)) {
-    res.statusCode = 404;
-    return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
-  }
-
+router.get('/api/tasks/:id', (req, res) => {
   const { id } = getUrlParameters('/api/tasks/:id', req.url);
 
-  if (method === 'GET') {
-    if (!id) {
-      return res.end(JSON.stringify(messageService.findAll()));
-    }
+  if (id < 0) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ errors: ['Enter message id'] }));
+  }
 
-    if (id < 0) {
+  try {
+    return res.end(messageService.findOne(id));
+  } catch (e) {
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ errors: [e.message] }));
+  }
+});
+
+router.post('/api/tasks', (req, res) => {
+  parseRequestBody(req).then(body => {
+    const { message } = body;
+
+    if (!message) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: ['Enter message id'] }));
     }
 
-    try {
-      return res.end(messageService.findOne(id));
-    } catch (e) {
-      res.statusCode = 404;
-      return res.end(JSON.stringify({ errors: [e.message] }));
+    return res.end(messageService.addMessage(message));
+  }).catch(e => {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ errors: [e.message] }));
+  });
+
+  return '';
+});
+
+router.put('/api/tasks/:id', (req, res) => {
+  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+
+  parseRequestBody(req).then(body => {
+    const { message } = body;
+
+    if (!message) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
     }
-  } if (method === 'DELETE') {
+
     if (!id || id < 0) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ errors: ['Enter message id'] }));
     }
 
-    try {
-      return res.end(messageService.deleteMessage(id));
-    } catch (error) {
-      res.statusCode = 404;
-      return res.end(JSON.stringify({ errors: [error.message] }));
+    return res.end(messageService.updateMessage(id, message));
+  }).catch(e => {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ errors: [e.message] }));
+  });
+
+  return '';
+});
+
+router.delete('/api/tasks/:id', (req, res) => {
+  const { id } = getUrlParameters('/api/tasks/:id', req.url);
+
+  if (!id || id < 0) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ errors: ['Enter message id'] }));
+  }
+
+  try {
+    return res.end(messageService.deleteMessage(id));
+  } catch (error) {
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ errors: [error.message] }));
+  }
+});
+
+const server = http.createServer((req, res) => {
+  const { method, url } = req;
+
+  const routerMethods = router.methods[method.toLowerCase()];
+
+  for (const value of routerMethods) {
+    const arrayParameters = value.pattern.match(/:([a-zA-Z0-9_]+)/g);
+
+    if (arrayParameters) {
+      const regExpUrl = value.pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
+
+      if (new RegExp(regExpUrl.replace(/\//g, '\\/')).test(url)) {
+        return value.callback(req, res);
+      }
+    } else if (url === value.pattern) {
+      return value.callback(req, res);
     }
-  } else if (method === 'POST') {
-    parseRequestBody(req).then(body => {
-      const { message } = body;
-
-      if (!message) {
-        res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-      }
-
-      return res.end(messageService.addMessage(message));
-    }).catch(e => {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: [e.message] }));
-    });
-
-    return '';
-  } else if (method === 'PUT') {
-    parseRequestBody(req).then(body => {
-      const { message } = body;
-
-      if (!message) {
-        res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-      }
-
-      if (!id || id < 0) {
-        res.statusCode = 400;
-        return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-      }
-
-      return res.end(messageService.updateMessage(id, message));
-    }).catch(e => {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: [e.message] }));
-    });
-
-    return '';
   }
 
   return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
