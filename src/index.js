@@ -1,110 +1,68 @@
-const http = require('http');
 const messageService = require('./MessageService');
 const express = require('./express');
 
-const hostname = '127.0.0.1';
-const port = 3000;
 const router = express.Router;
 
-router.get('/api/tasks', (req, res) => res.end(JSON.stringify(messageService.findAll())));
+router.get('/api/tasks', (req, res) => res.send(messageService.findAll()));
 
 router.get('/api/tasks/:id', (req, res) => {
-  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = req.params;
 
   if (id < 0) {
     res.statusCode = 400;
-    return res.end(JSON.stringify({ errors: ['Enter message id'] }));
+    return res.send({ errors: ['Enter message id'] });
   }
 
   try {
-    return res.end(messageService.findOne(id));
+    return res.send(messageService.findOne(id));
   } catch (e) {
     res.statusCode = 404;
-    return res.end(JSON.stringify({ errors: [e.message] }));
+    return res.send({ errors: [e.message] });
   }
 });
 
 router.post('/api/tasks', (req, res) => {
-  express.parseRequestBody(req).then(body => {
-    const { message } = body;
+  const { message } = req.body;
 
-    if (!message) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-    }
-
-    return res.end(messageService.addMessage(message));
-  }).catch(e => {
+  if (!message) {
     res.statusCode = 400;
-    return res.end(JSON.stringify({ errors: [e.message] }));
-  });
+    return res.send({ errors: ['Enter message'] });
+  }
 
-  return '';
+  return res.send(messageService.addMessage(message));
 });
 
 router.put('/api/tasks/:id', (req, res) => {
-  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
+  const { id } = req.params;
+  const { message } = req.body;
 
-  express.parseRequestBody(req).then(body => {
-    const { message } = body;
-
-    if (!message) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-    }
-
-    if (!id || id < 0) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ errors: ['Enter message id'] }));
-    }
-
-    return res.end(messageService.updateMessage(id, message));
-  }).catch(e => {
+  if (!message) {
     res.statusCode = 400;
-    return res.end(JSON.stringify({ errors: [e.message] }));
-  });
-
-  return '';
-});
-
-router.delete('/api/tasks/:id', (req, res) => {
-  const { id } = express.getUrlParameters('/api/tasks/:id', req.url);
+    return res.send({ errors: ['Enter message'] });
+  }
 
   if (!id || id < 0) {
     res.statusCode = 400;
-    return res.end(JSON.stringify({ errors: ['Enter message id'] }));
+    return res.send({ errors: ['Enter message id'] });
+  }
+
+  return res.send(messageService.updateMessage(id, message));
+});
+
+router.delete('/api/tasks/:id', (req, res) => {
+  const { id } = req.params;
+
+  if (!id || id < 0) {
+    res.statusCode = 400;
+    return res.send({ errors: ['Enter message id'] });
   }
 
   try {
-    return res.end(messageService.deleteMessage(id));
+    return res.send(messageService.deleteMessage(id));
   } catch (error) {
     res.statusCode = 404;
-    return res.end(JSON.stringify({ errors: [error.message] }));
+    return res.send({ errors: [error.message] });
   }
 });
 
-const server = http.createServer((req, res) => {
-  const { method, url } = req;
-
-  const routerMethods = router.methods[method.toLowerCase()];
-
-  for (const value of routerMethods) {
-    const arrayParameters = value.pattern.match(/:([a-zA-Z0-9_]+)/g);
-
-    if (arrayParameters) {
-      const regExpUrl = value.pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
-
-      if (new RegExp(regExpUrl.replace(/\//g, '\\/')).test(url)) {
-        return value.callback(req, res);
-      }
-    } else if (url === value.pattern) {
-      return value.callback(req, res);
-    }
-  }
-
-  return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
-});
-
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-});
+express.createServer();
