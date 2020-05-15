@@ -1,30 +1,29 @@
 const http = require('http');
-
 const hostname = '127.0.0.1';
 const port = 3000;
 
 const Router = {
   methods: {
-    get: [],
-    post: [],
-    put: [],
-    delete: []
+      get: [],
+      post: [],
+      put: [],
+      delete: []
   },
 
   get(pattern, callback) {
-    this.methods.get.push({ pattern, callback });
+      this.methods.get.push({ pattern, callback });
   },
 
   post(pattern, callback) {
-    this.methods.post.push({ pattern, callback });
+      this.methods.post.push({ pattern, callback });
   },
 
   put(pattern, callback) {
-    this.methods.put.push({ pattern, callback });
+      this.methods.put.push({ pattern, callback });
   },
 
   delete(pattern, callback) {
-    this.methods.delete.push({ pattern, callback });
+      this.methods.delete.push({ pattern, callback });
   }
 };
 
@@ -73,7 +72,7 @@ const parseRequestBody = req => new Promise((resolve, rejected) => {
   });
 });
 
-const getUrlQueryParameters = (pattern, req) => {
+const prepareRequestParameters = (pattern, req) => {
   req.params = getUrlParameters(pattern, req.url);
   req.query = getRequestQueryParameters(req.url);
 };
@@ -96,7 +95,7 @@ const createServer = () => {
           const regExpUrl = value.pattern.replace(new RegExp(`${arrayParameters.join('\\b|')}\\b`, 'g'), '([a-zA-Z0-9_-]+)');
 
           if (new RegExp(regExpUrl.replace(/\//g, '\\/')).test(url)) {
-            getUrlQueryParameters(value.pattern, req);
+            prepareRequestParameters(value.pattern, req);
 
             return value.callback(req, res);
           }
@@ -107,7 +106,7 @@ const createServer = () => {
 
       return res.end(JSON.stringify({ errors: ['Method not allowed'] }));
     }).catch(e => {
-      res.statusCode = 400;
+      res.statusCode = 500;
       return res.end(JSON.stringify({ errors: [e.message] }));
     });
   });
