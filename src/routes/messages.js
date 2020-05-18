@@ -2,7 +2,7 @@ const { messageService } = require('../service');
 
 const init = router => {
   router.get('/api/tasks', (req, res) => res.send(messageService.findAll()));
-  
+
   router.get('/api/tasks/:id', (req, res) => {
     const { id } = req.params;
 
