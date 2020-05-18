@@ -1,4 +1,4 @@
-const express = require('./utils');
+const { express } = require('./utils');
 const routes = require('./routes');
 
 routes.init(express.Router);
