@@ -1,6 +1,12 @@
-express = require('./utils');
-routes = require('./routes');
+const express = require('express');
+const cors = require('cors');
+const routes = require('./routes');
 
-routes.init(express.Router);
+const app = express();
 
-express.createServer();
+app.use(express.json());
+app.use(cors());
+
+routes.init(app);
+
+app.listen(3001);

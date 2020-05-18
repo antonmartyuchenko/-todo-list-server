@@ -1,3 +1,5 @@
 const messageService = require('./message');
 
-module.exports = messageService;
+module.exports = {
+  messageService
+};

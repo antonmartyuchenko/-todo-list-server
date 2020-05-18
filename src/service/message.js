@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-module.exports.addMessage = (message) => {
+const addMessage = (message) => {
   let lineBreak = '';
 
   if (fs.existsSync('log.txt') && fs.readFileSync('log.txt', 'utf8') !== '') {
@@ -12,7 +12,7 @@ module.exports.addMessage = (message) => {
   return message;
 };
 
-module.exports.findAll = () => {
+const findAll = () => {
   if (fs.existsSync('log.txt')) {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
@@ -24,7 +24,7 @@ module.exports.findAll = () => {
   return [];
 };
 
-module.exports.findOne = id => {
+const findOne = id => {
   if (fs.existsSync('log.txt')) {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
@@ -41,7 +41,7 @@ module.exports.findOne = id => {
 };
 
 
-module.exports.deleteMessage = id => {
+const deleteMessage = id => {
   if (fs.existsSync('log.txt')) {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
@@ -61,7 +61,7 @@ module.exports.deleteMessage = id => {
   throw new Error('Message has not been found');
 };
 
-module.exports.updateMessage = (id, message) => {
+const updateMessage = (id, message) => {
   if (fs.existsSync('log.txt')) {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
@@ -79,4 +79,12 @@ module.exports.updateMessage = (id, message) => {
   }
 
   throw new Error('Message has not been found');
+};
+
+module.exports = {
+  addMessage,
+  findAll,
+  findOne,
+  deleteMessage,
+  updateMessage
 };
