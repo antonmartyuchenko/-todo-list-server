@@ -1,5 +1,5 @@
-express = require('./utils');
-routes = require('./routes');
+const express = require('./utils');
+const routes = require('./routes');
 
 routes.init(express.Router);
 

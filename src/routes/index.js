@@ -1,6 +1,9 @@
-routerMessage = require('./messages');
+const routerMessage = require('./messages');
 
-module.exports.init = router => {
-    routerMessage.init(router);
-} 
+const init = router => {
+  routerMessage.init(router);
+};
 
+module.exports = {
+  init
+};

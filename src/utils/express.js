@@ -1,29 +1,30 @@
 const http = require('http');
+
 const hostname = '127.0.0.1';
 const port = 3000;
 
 const Router = {
   methods: {
-      get: [],
-      post: [],
-      put: [],
-      delete: []
+    get: [],
+    post: [],
+    put: [],
+    delete: []
   },
 
   get(pattern, callback) {
-      this.methods.get.push({ pattern, callback });
+    this.methods.get.push({ pattern, callback });
   },
 
   post(pattern, callback) {
-      this.methods.post.push({ pattern, callback });
+    this.methods.post.push({ pattern, callback });
   },
 
   put(pattern, callback) {
-      this.methods.put.push({ pattern, callback });
+    this.methods.put.push({ pattern, callback });
   },
 
   delete(pattern, callback) {
-      this.methods.delete.push({ pattern, callback });
+    this.methods.delete.push({ pattern, callback });
   }
 };
 
@@ -117,5 +118,6 @@ const createServer = () => {
 };
 
 module.exports = {
-  Router, createServer
+  Router,
+  createServer
 };
