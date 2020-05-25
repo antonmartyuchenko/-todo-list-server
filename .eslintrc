@@ -22,6 +22,7 @@
       "only-multiline"
     ],
     "dot-notation": "warn",
+    "import/no-dynamic-require": 0,
     "import/no-commonjs": 0,
     "import/no-extraneous-dependencies": 0,
     "react/no-find-dom-node": 0,
@@ -35,12 +36,7 @@
     ],
     "no-process-exit": 0,
     "no-tabs": 2,
-    "no-plusplus": [
-      "error",
-      {
-        "allowForLoopAfterthoughts": true
-      }
-    ],
+    "no-plusplus": 0,
     "import/no-unresolved": 0,
     "new-cap": 0,
     "no-console": 0,
