@@ -14,7 +14,6 @@ const migrate = () => {
 
   for (const file of files) {
     if (path.extname(file) === '.js' && !executedMigrations.includes(file) && file !== 'index.js') {
-      // eslint-disable-next-line global-require
       const script = require(`./${file}`);
       script.exec();
       executedMigrations.push(file);
