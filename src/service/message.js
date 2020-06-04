@@ -1,85 +1,133 @@
 const fs = require('fs');
+const readline = require('readline');
 
-const addMessage = (message) => {
+const createInterface = () => readline.createInterface({
+  input: fs.createReadStream('log.txt'),
+  output: process.stdout,
+  terminal: false
+});
+
+const addMessage = (newMessage) => new Promise((resolve, rejected) => {
   let lineBreak = '';
 
-  if (fs.existsSync('log.txt') && fs.readFileSync('log.txt', 'utf8') !== '') {
-    lineBreak = '\n';
+  if (fs.existsSync('log.txt')) {
+    const rl = createInterface();
+    let newId = 0;
+
+    rl.on('line', line => {
+      const { id, message } = JSON.parse(line);
+      if (line) {
+        fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
+      }
+      if (!lineBreak) { lineBreak = '\n'; }
+
+      newId = id;
+    });
+
+    rl.on('close', () => {
+      fs.unlinkSync('log.txt');
+      fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id: ++newId, message: newMessage })}`);
+      fs.renameSync('log1.txt', 'log.txt');
+      resolve(newMessage);
+    });
+  } else {
+    rejected(new Error('file not exiest'));
   }
-
-  fs.appendFileSync('log.txt', `${lineBreak}${message}`);
-
-  return message;
-};
+});
 
 const findAll = () => {
   if (fs.existsSync('log.txt')) {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n');
+      return fileData;
     }
   }
 
   return [];
 };
 
-const findOne = id => {
+const findOne = messageId => new Promise((resolve, rejected) => {
   if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
+    const rl = createInterface();
 
-    if (fileData) {
-      const message = fileData.split('\n')[id];
+    rl.on('line', line => {
+      const { id, message } = JSON.parse(line);
 
-      if (message) {
-        return message;
+      if (id === parseInt(messageId, 10)) {
+        resolve(message);
+        rl.close();
+        rl.removeAllListeners();
       }
-    }
+    });
+
+    rl.on('close', () => {
+      rejected(new Error('Message has not been found'));
+    });
+  } else {
+    rejected(new Error('file not exiest'));
   }
+});
 
-  return null;
-};
+const deleteMessage = messageId => new Promise((resolve, rejected) => {
+  let lineBreak = '';
 
-
-const deleteMessage = id => {
   if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
+    const rl = createInterface();
 
-    if (fileData) {
-      const messages = fileData.split('\n');
+    rl.on('line', line => {
+      const { id, message } = JSON.parse(line);
 
-      if (id >= messages.length) { throw new Error('Message has not been found'); }
+      if (id !== parseInt(messageId, 10)) {
+        if (line) {
+          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
+        }
+        if (!lineBreak) { lineBreak = '\n'; }
+      } else {
+        resolve();
+      }
+    });
 
-      messages.splice(id, 1);
-
-      fs.writeFileSync('log.txt', messages.join('\n'));
-
-      return;
-    }
+    rl.on('close', () => {
+      fs.unlinkSync('log.txt');
+      fs.renameSync('log1.txt', 'log.txt');
+      rejected(new Error('Message has not been found'));
+    });
+  } else {
+    rejected(new Error('file not exiest'));
   }
+});
 
-  throw new Error('Message has not been found');
-};
+const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, rejected) => {
+  let lineBreak = '';
 
-const updateMessage = (id, message) => {
   if (fs.existsSync('log.txt')) {
-    const fileData = fs.readFileSync('log.txt', 'utf8');
+    const rl = createInterface();
 
-    if (fileData) {
-      const messages = fileData.split('\n');
+    rl.on('line', line => {
+      const { id, message } = JSON.parse(line);
 
-      if (id >= messages.length) { throw new Error('Message has not been found'); }
+      if (id === parseInt(messageId, 10)) {
+        if (line) {
+          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message: modifiedMessage })}`);
+          resolve(modifiedMessage);
+        }
+      } else if (line) {
+        fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
+      }
 
-      messages[id] = message;
+      if (!lineBreak) { lineBreak = '\n'; }
+    });
 
-      fs.writeFileSync('log.txt', messages.join('\n'));
-
-      return message;
-    }
+    rl.on('close', () => {
+      fs.unlinkSync('log.txt');
+      fs.renameSync('log1.txt', 'log.txt');
+      rejected(new Error('Message has not been found'));
+    });
+  } else {
+    rejected(new Error('file not exiest'));
   }
-
-  throw new Error('Message has not been found');
-};
+});
 
 module.exports = {
   addMessage,

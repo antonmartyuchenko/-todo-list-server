@@ -11,12 +11,12 @@ const init = router => {
       return res.send({ errors: ['Enter message id'] });
     }
 
-    try {
-      return res.send(messageService.findOne(id));
-    } catch (e) {
-      res.statusCode = 404;
-      return res.send({ errors: [e.message] });
-    }
+    return messageService.findOne(id)
+      .then((message) => { res.send(message); })
+      .catch(e => {
+        res.statusCode = 404;
+        res.send({ errors: [e.message] });
+      });
   });
 
   router.post('/api/tasks', (req, res) => {
@@ -27,7 +27,12 @@ const init = router => {
       return res.send({ errors: ['Enter message'] });
     }
 
-    return res.send(messageService.addMessage(message));
+    return messageService.addMessage(message)
+      .then((newMessage) => { res.send(newMessage); })
+      .catch(e => {
+        res.statusCode = 404;
+        res.send({ errors: [e.message] });
+      });
   });
 
   router.put('/api/tasks/:id', (req, res) => {
@@ -44,7 +49,12 @@ const init = router => {
       return res.send({ errors: ['Enter message id'] });
     }
 
-    return res.send(messageService.updateMessage(id, message));
+    return messageService.updateMessage(id, message)
+      .then((newMessage) => { res.send(newMessage); })
+      .catch(e => {
+        res.statusCode = 404;
+        res.send({ errors: [e.message] });
+      });
   });
 
   router.delete('/api/tasks/:id', (req, res) => {
@@ -55,12 +65,12 @@ const init = router => {
       return res.send({ errors: ['Enter message id'] });
     }
 
-    try {
-      return res.send(messageService.deleteMessage(id));
-    } catch (error) {
-      res.statusCode = 404;
-      return res.send({ errors: [error.message] });
-    }
+    return messageService.deleteMessage(id)
+      .then(() => { res.send(); })
+      .catch(e => {
+        res.statusCode = 404;
+        res.send({ errors: [e.message] });
+      });
   });
 };
 
