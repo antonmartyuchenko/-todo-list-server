@@ -1,10 +1,10 @@
 const fs = require('fs');
 const readline = require('readline');
 
-let count = 0;
-let lineBreak = '';
+const convertData = () => new Promise(resolve => {
+  let count = 0;
+  let lineBreak = '';
 
-const convertData = () => new Promise((resolve, rejected) => {
   if (fs.existsSync('log.txt')) {
     const rl = readline.createInterface({
       input: fs.createReadStream('log.txt'),
@@ -22,7 +22,6 @@ const convertData = () => new Promise((resolve, rejected) => {
     rl.on('close', () => {
       fs.unlinkSync('log.txt');
       fs.renameSync('log1.txt', 'log.txt');
-      console.log(1);
       resolve();
     });
   }

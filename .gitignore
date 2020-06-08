@@ -28,6 +28,6 @@ yarn-error.log*
 log.txt
 log.json
 
-executedMigrations.json
+executedMigration.json
 
 node

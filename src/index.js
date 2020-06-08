@@ -5,11 +5,11 @@ const db = require('./db');
 
 const app = express();
 
-db.migrate();
+db.migrate().then(() => {
+  app.use(express.json());
+  app.use(cors());
 
-app.use(express.json());
-app.use(cors());
+  routes.init(app);
 
-routes.init(app);
-
-app.listen(3001);
+  app.listen(3001);
+});
