@@ -1,12 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const routes = require('./routes');
+const db = require('./db');
 
 const app = express();
 
-app.use(express.json());
-app.use(cors());
+db.migrate().then(() => {
+  app.use(express.json());
+  app.use(cors());
 
-routes.init(app);
+  routes.init(app);
 
-app.listen(3001);
+  app.listen(3001);
+});
