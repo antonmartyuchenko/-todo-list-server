@@ -32,7 +32,6 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      // console.log(`[${fileData.replace('/\n/g', ',')}]`);
       return fileData.split('\n');
     }
   }
@@ -68,6 +67,7 @@ const findOne = messageId => new Promise((resolve, reject) => {
 
 const deleteMessage = messageId => new Promise((resolve, reject) => {
   let lineBreak = '';
+  let messageDeleted = false;
 
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
@@ -78,11 +78,13 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
       if (line) {
         const { id } = JSON.parse(line);
 
+        console.log(line);
         if (id !== numberId) {
-          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify(line)}`);
+          fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         } else {
-          resolve();
-        }
+          messageDeleted = true;
+        };
+
         if (!lineBreak) { lineBreak = '\n'; }
       }
     });
@@ -90,7 +92,12 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
     rl.on('close', () => {
       fs.unlinkSync('log.txt');
       fs.renameSync('log1.txt', 'log.txt');
-      reject(new Error('Message has not been found'));
+      
+      if (messageDeleted) {
+        resolve();
+      } else {
+        reject(new Error('Message has not been found'));
+      }
     });
   } else {
     reject(new Error('Message has not been found'));
@@ -113,7 +120,7 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
           fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message: modifiedMessage })}`);
           resolve(modifiedMessage);
         } else {
-          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify(line)}`);
+          fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         }
 
         if (!lineBreak) { lineBreak = '\n'; }
