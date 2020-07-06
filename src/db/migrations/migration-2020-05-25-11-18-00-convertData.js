@@ -20,11 +20,14 @@ const convertData = () => new Promise(resolve => {
     });
 
     rl.on('close', () => {
-      fs.unlinkSync('log.txt');
-      fs.renameSync('log1.txt', 'log.txt');
+      if (count) {
+        fs.unlinkSync('log.txt');
+        fs.renameSync('log1.txt', 'log.txt');
+      }
+
       resolve();
     });
-  }
+  } else { resolve(); }
 });
 
 module.exports = {

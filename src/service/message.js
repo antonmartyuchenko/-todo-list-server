@@ -8,28 +8,18 @@ const createInterface = () => readline.createInterface({
 });
 
 const addMessage = (newMessage) => new Promise((resolve, reject) => {
-  let lineBreak = '';
-
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
-    let newId = 0;
+    let count = 0;
 
     rl.on('line', line => {
       if (line) {
-        const { id, message } = JSON.parse(line);
-
-        fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
-
-        if (!lineBreak) { lineBreak = '\n'; }
-
-        newId = id;
+        count++;
       }
     });
 
     rl.on('close', () => {
-      fs.unlinkSync('log.txt');
-      fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id: ++newId, message: newMessage })}`);
-      fs.renameSync('log1.txt', 'log.txt');
+      fs.appendFileSync('log.txt', `\n${JSON.stringify({ id: count, message: newMessage })}`);
       resolve(newMessage);
     });
   } else {
@@ -42,6 +32,7 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
+      // console.log(`[${fileData.replace('/\n/g', ',')}]`);
       return fileData.split('\n');
     }
   }
@@ -53,11 +44,13 @@ const findOne = messageId => new Promise((resolve, reject) => {
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
 
+    const numberId = parseInt(messageId, 10);
+
     rl.on('line', line => {
       if (line) {
         const { id, message } = JSON.parse(line);
 
-        if (id === parseInt(messageId, 10)) {
+        if (id === numberId) {
           resolve(message);
           rl.close();
           rl.removeAllListeners();
@@ -69,7 +62,7 @@ const findOne = messageId => new Promise((resolve, reject) => {
       reject(new Error('Message has not been found'));
     });
   } else {
-    reject(new Error('file not exiest'));
+    reject(new Error('Message has not been found'));
   }
 });
 
@@ -79,12 +72,14 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
 
+    const numberId = parseInt(messageId, 10);
+
     rl.on('line', line => {
       if (line) {
-        const { id, message } = JSON.parse(line);
+        const { id } = JSON.parse(line);
 
-        if (id !== parseInt(messageId, 10)) {
-          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
+        if (id !== numberId) {
+          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify(line)}`);
         } else {
           resolve();
         }
@@ -98,7 +93,7 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
       reject(new Error('Message has not been found'));
     });
   } else {
-    reject(new Error('file not exiest'));
+    reject(new Error('Message has not been found'));
   }
 });
 
@@ -108,15 +103,17 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
 
+    const numberId = parseInt(messageId, 10);
+
     rl.on('line', line => {
       if (line) {
-        const { id, message } = JSON.parse(line);
+        const { id } = JSON.parse(line);
 
-        if (id === parseInt(messageId, 10)) {
+        if (id === numberId) {
           fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message: modifiedMessage })}`);
           resolve(modifiedMessage);
         } else {
-          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message })}`);
+          fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify(line)}`);
         }
 
         if (!lineBreak) { lineBreak = '\n'; }
@@ -129,7 +126,7 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
       reject(new Error('Message has not been found'));
     });
   } else {
-    reject(new Error('file not exiest'));
+    reject(new Error('Message has not been found'));
   }
 });
 
