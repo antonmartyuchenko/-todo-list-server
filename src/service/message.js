@@ -77,13 +77,12 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
     rl.on('line', line => {
       if (line) {
         const { id } = JSON.parse(line);
-
-        console.log(line);
+        
         if (id !== numberId) {
           fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         } else {
           messageDeleted = true;
-        };
+        }
 
         if (!lineBreak) { lineBreak = '\n'; }
       }
@@ -92,7 +91,7 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
     rl.on('close', () => {
       fs.unlinkSync('log.txt');
       fs.renameSync('log1.txt', 'log.txt');
-      
+
       if (messageDeleted) {
         resolve();
       } else {
