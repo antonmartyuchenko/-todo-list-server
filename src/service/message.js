@@ -32,7 +32,12 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n').map(JSON.parse);
+      return fileData.split('\n').map(line => {
+        if (line) {
+          return JSON.parse(line);
+        }
+        return null;
+      }).filter(task => task);
     }
   }
 

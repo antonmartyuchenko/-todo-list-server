@@ -11,5 +11,5 @@ db.migrate().then(() => {
 
   routes.init(app);
 
-  app.listen(3001);
+  app.listen(3001, () => console.info('The server is running'));
 });
