@@ -20,7 +20,7 @@ const addMessage = (newMessage) => new Promise((resolve, reject) => {
 
     rl.on('close', () => {
       fs.appendFileSync('log.txt', `\n${JSON.stringify({ id: count, message: newMessage })}`);
-      resolve(newMessage);
+      resolve(JSON.stringify({ id: count, message: newMessage }));
     });
   } else {
     reject(new Error('file not exiest'));
@@ -32,7 +32,7 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n');
+      return fileData.split('\n').map(JSON.parse);
     }
   }
 
@@ -77,7 +77,7 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
     rl.on('line', line => {
       if (line) {
         const { id } = JSON.parse(line);
-        
+
         if (id !== numberId) {
           fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         } else {
