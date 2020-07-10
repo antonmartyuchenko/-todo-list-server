@@ -7,9 +7,14 @@ const app = express();
 
 db.migrate().then(() => {
   app.use(express.json());
-  app.use(cors());
+  app.use('*', cors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  }));
 
   routes.init(app);
 
-  app.listen(3001);
+  app.listen(3001, '127.0.0.1', () => console.info('The server is running'));
 });

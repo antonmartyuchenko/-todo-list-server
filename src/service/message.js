@@ -8,22 +8,25 @@ const createInterface = () => readline.createInterface({
 });
 
 const addMessage = (newMessage) => new Promise((resolve, reject) => {
+  let count = 0;
+
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
-    let count = 0;
 
     rl.on('line', line => {
       if (line) {
+        count = JSON.parse(line).id;
         count++;
       }
     });
 
     rl.on('close', () => {
       fs.appendFileSync('log.txt', `\n${JSON.stringify({ id: count, message: newMessage })}`);
-      resolve(newMessage);
+      resolve({ id: count, message: newMessage });
     });
   } else {
-    reject(new Error('file not exiest'));
+    fs.appendFileSync('log.txt', `${JSON.stringify({ id: count, message: newMessage })}`);
+    resolve({ id: count, message: newMessage });
   }
 });
 
@@ -32,7 +35,12 @@ const findAll = () => {
     const fileData = fs.readFileSync('log.txt', 'utf8');
 
     if (fileData) {
-      return fileData.split('\n');
+      return fileData.split('\n').map(line => {
+        if (line) {
+          return JSON.parse(line);
+        }
+        return null;
+      }).filter(task => task);
     }
   }
 
@@ -71,13 +79,12 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
 
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
-
     const numberId = parseInt(messageId, 10);
 
     rl.on('line', line => {
       if (line) {
         const { id } = JSON.parse(line);
-        
+
         if (id !== numberId) {
           fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         } else {
@@ -105,6 +112,7 @@ const deleteMessage = messageId => new Promise((resolve, reject) => {
 
 const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reject) => {
   let lineBreak = '';
+  let messageModified = false;
 
   if (fs.existsSync('log.txt')) {
     const rl = createInterface();
@@ -117,7 +125,7 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
 
         if (id === numberId) {
           fs.appendFileSync('log1.txt', `${lineBreak}${JSON.stringify({ id, message: modifiedMessage })}`);
-          resolve(modifiedMessage);
+          messageModified = true;
         } else {
           fs.appendFileSync('log1.txt', `${lineBreak}${line}`);
         }
@@ -129,7 +137,12 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
     rl.on('close', () => {
       fs.unlinkSync('log.txt');
       fs.renameSync('log1.txt', 'log.txt');
-      reject(new Error('Message has not been found'));
+
+      if (messageModified) {
+        resolve({ id: numberId, message: modifiedMessage });
+      } else {
+        reject(new Error('Message has not been found'));
+      }
     });
   } else {
     reject(new Error('Message has not been found'));
