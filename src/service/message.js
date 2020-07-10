@@ -22,11 +22,11 @@ const addMessage = (newMessage) => new Promise((resolve, reject) => {
 
     rl.on('close', () => {
       fs.appendFileSync('log.txt', `\n${JSON.stringify({ id: count, message: newMessage })}`);
-      resolve(JSON.stringify({ id: count, message: newMessage }));
+      resolve({ id: count, message: newMessage });
     });
   } else {
     fs.appendFileSync('log.txt', `${JSON.stringify({ id: count, message: newMessage })}`);
-    resolve(JSON.stringify({ id: count, message: newMessage }));
+    resolve({ id: count, message: newMessage });
   }
 });
 
@@ -139,7 +139,7 @@ const updateMessage = (messageId, modifiedMessage) => new Promise((resolve, reje
       fs.renameSync('log1.txt', 'log.txt');
 
       if (messageModified) {
-        resolve(JSON.stringify({ id: numberId, message: modifiedMessage }));
+        resolve({ id: numberId, message: modifiedMessage });
       } else {
         reject(new Error('Message has not been found'));
       }
