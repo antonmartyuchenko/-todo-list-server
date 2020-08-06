@@ -1,11 +1,4 @@
-const mysql = require('mysql2');
-
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  database: 'todolist',
-  password: 'Liverpoolfc1993'
-});
+const { connection } = require('../db');
 
 const addMessage = (newMessage) => new Promise((resolve, reject) => {
   connection.execute(

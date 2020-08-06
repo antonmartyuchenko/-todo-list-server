@@ -1,15 +1,8 @@
 const fs = require('fs');
 const readline = require('readline');
-const mysql = require('mysql2');
+const { connection } = require('../connection');
 
 const convertDataToSql = () => new Promise(resolve => {
-  const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    database: 'todolist',
-    password: 'Liverpoolfc1993'
-  });
-
   if (fs.existsSync('log.txt')) {
     const rl = readline.createInterface({
       input: fs.createReadStream('log.txt'),

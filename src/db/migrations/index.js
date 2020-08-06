@@ -1,13 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const mysql = require('mysql2');
-
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  database: 'todolist',
-  password: 'Liverpoolfc1993'
-});
+const { connection } = require('../connection');
 
 const getExecutedMigrations = () => new Promise((resolve) => {
   connection.query(
@@ -27,12 +20,12 @@ const migrate = () => getExecutedMigrations().then((executedMigrations) => {
     // eslint-disable-next-line global-require
     const script = require(`./${file}`);
 
-    connection.execute(
-      'INSERT INTO `migrations` (`migration`) VALUES (?)',
-      [file]
-    );
-
-    return script.exec();
+    return script.exec().then(() => {
+      connection.execute(
+        'INSERT INTO `migrations` (`migration`) VALUES (?)',
+        [file]
+      );
+    });
   }), Promise.resolve());
 });
 
