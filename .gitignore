@@ -31,3 +31,5 @@ log.json
 executedMigration.json
 
 node
+
+.env

@@ -1,3 +1,5 @@
+const { SERVER_PORT, SERVER_HOST } = require('dotenv').config().parsed;
+
 const express = require('express');
 const cors = require('cors');
 const routes = require('./routes');
@@ -16,5 +18,5 @@ db.migrate().then(() => {
 
   routes.init(app);
 
-  app.listen(3001, '127.0.0.1', () => console.info('The server is running'));
+  app.listen(SERVER_PORT, SERVER_HOST, () => console.info('The server is running'));
 });
